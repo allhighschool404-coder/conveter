@@ -15,7 +15,8 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, 
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
 
-app = Flask(__name__)
+# Initialize Flask with root folder serving for easy Render deployment
+app = Flask(__name__, template_folder='.', static_folder='.', static_url_path='')
 
 SUPPORTED_EXTENSIONS = [
     '.jpeg', '.jpg', '.png', '.webp', '.svg', '.gif', '.psd',
@@ -30,7 +31,7 @@ MAX_WORKERS = min(16, (os.cpu_count() or 4) * 2)
 ENGLISH_DATE_PATTERN = re.compile(r'\b\d{1,4}[/\-\.]\d{1,2}[/\-\.]\d{1,4}\b')
 BANGLA_DATE_PATTERN = re.compile(r'\b[০-৯]{1,4}[/\-\.][০-৯]{1,2}[/\-\.][০-৯]{1,4}\b')
 SUBJECT_SPLIT_PATTERN = re.compile(r'বিষয়|বিষয়|Subject', flags=re.IGNORECASE)
-SUB_CLEAN_SPLIT_PATTERN = re.compile(r'মাস|শ্রেণি|শ্রেণী|শিক্ষক|\n')
+SUB_CLEAN_SPLIT_PATTERN = re.compile(r'মাস|শ্রেণি|শ্রেণী|शिक्षক|\n')
 CLEAN_FILENAME_PATTERN = re.compile(r'[\\/*?:"<>|]')
 WHITESPACE_PATTERN = re.compile(r'\s+')
 
@@ -128,7 +129,7 @@ def extract_data_strictly_all_pages(docx_file, template_columns, original_filena
                     continue
                 
                 row_str_check = "".join([clean_and_normalize(c) for c in current_row])
-                if any(key in row_str_check for key in ['বিদ্যালয়', 'বিদ্যালয়', 'পরিকল্পনা', 'शिक्षকের নাম']):
+                if any(key in row_str_check for key in ['বিদ্যালয়', 'বিদ্যালয়', 'পরিকল্পনা', 'শিক্ষকের নাম']):
                     continue
                     
                 row_dict = {col: "" for col in template_columns}
@@ -352,58 +353,66 @@ def process_pillow_to_pdf(file_bytes):
     return pdf_bytes
 
 def convert_doc_via_word(file_bytes, ext):
-    import pythoncom, win32com.client
-    pythoncom.CoInitialize()
-    word = None
-    pdf_path = None
-    src_path = None
+    """Windows COM automation (Cross-platform safe fallback)"""
     try:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as f:
-            f.write(file_bytes)
-            src_path = f.name
-        pdf_path = src_path + ".pdf"
-        word = win32com.client.Dispatch("Word.Application")
-        word.Visible = False
-        word.DisplayAlerts = False
-        doc = word.Documents.Open(src_path)
-        doc.SaveAs(pdf_path, FileFormat=17)  # 17 = wdFormatPDF
-        doc.Close(False)
-        with open(pdf_path, "rb") as pf:
-            return pf.read()
-    finally:
-        if word:
-            try: word.Quit()
-            except: pass
-        pythoncom.CoUninitialize()
-        if src_path and os.path.exists(src_path): os.remove(src_path)
-        if pdf_path and os.path.exists(pdf_path): os.remove(pdf_path)
+        import pythoncom, win32com.client
+        pythoncom.CoInitialize()
+        word = None
+        pdf_path = None
+        src_path = None
+        try:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as f:
+                f.write(file_bytes)
+                src_path = f.name
+            pdf_path = src_path + ".pdf"
+            word = win32com.client.Dispatch("Word.Application")
+            word.Visible = False
+            word.DisplayAlerts = False
+            doc = word.Documents.Open(src_path)
+            doc.SaveAs(pdf_path, FileFormat=17)
+            doc.Close(False)
+            with open(pdf_path, "rb") as pf:
+                return pf.read()
+        finally:
+            if word:
+                try: word.Quit()
+                except: pass
+            pythoncom.CoUninitialize()
+            if src_path and os.path.exists(src_path): os.remove(src_path)
+            if pdf_path and os.path.exists(pdf_path): os.remove(pdf_path)
+    except Exception:
+        return None
 
 def convert_sheet_via_excel(file_bytes, ext):
-    import pythoncom, win32com.client
-    pythoncom.CoInitialize()
-    excel = None
-    pdf_path = None
-    src_path = None
+    """Windows COM automation (Cross-platform safe fallback)"""
     try:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as f:
-            f.write(file_bytes)
-            src_path = f.name
-        pdf_path = src_path + ".pdf"
-        excel = win32com.client.Dispatch("Excel.Application")
-        excel.Visible = False
-        excel.DisplayAlerts = False
-        wb = excel.Workbooks.Open(src_path)
-        wb.ExportAsFixedFormat(0, pdf_path)  # 0 = xlTypePDF
-        wb.Close(False)
-        with open(pdf_path, "rb") as pf:
-            return pf.read()
-    finally:
-        if excel:
-            try: excel.Quit()
-            except: pass
-        pythoncom.CoUninitialize()
-        if src_path and os.path.exists(src_path): os.remove(src_path)
-        if pdf_path and os.path.exists(pdf_path): os.remove(pdf_path)
+        import pythoncom, win32com.client
+        pythoncom.CoInitialize()
+        excel = None
+        pdf_path = None
+        src_path = None
+        try:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as f:
+                f.write(file_bytes)
+                src_path = f.name
+            pdf_path = src_path + ".pdf"
+            excel = win32com.client.Dispatch("Excel.Application")
+            excel.Visible = False
+            excel.DisplayAlerts = False
+            wb = excel.Workbooks.Open(src_path)
+            wb.ExportAsFixedFormat(0, pdf_path)
+            wb.Close(False)
+            with open(pdf_path, "rb") as pf:
+                return pf.read()
+        finally:
+            if excel:
+                try: excel.Quit()
+                except: pass
+            pythoncom.CoUninitialize()
+            if src_path and os.path.exists(src_path): os.remove(src_path)
+            if pdf_path and os.path.exists(pdf_path): os.remove(pdf_path)
+    except Exception:
+        return None
 
 def fallback_txt_to_pdf(txt_bytes):
     try:
@@ -523,28 +532,24 @@ def convert_any_file_to_jpg(file_bytes, filename, dpi=150, quality=85):
             pass
         try:
             pdf_bytes = convert_doc_via_word(file_bytes, ext)
-            doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-            return process_fitz_doc(doc, dpi, quality)
-        except Exception as e:
-            raise RuntimeError(f"AI/EPS ফাইল প্রসেস করতে সমস্যা হয়েছে: {str(e)}")
+            if pdf_bytes:
+                doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+                return process_fitz_doc(doc, dpi, quality)
+        except Exception:
+            pass
+        raise RuntimeError(f"AI/EPS ফাইল প্রসেস করতে সমস্যা হয়েছে।")
 
     if ext in ['.doc', '.docx', '.rtf', '.odt', '.txt']:
         pdf_bytes = None
 
-        # ১. দ্রুত Native Python Conversion প্রথমে চেষ্টা (Docx & Txt এর জন্য)
         if ext == '.docx':
             pdf_bytes = fallback_doc_to_pdf(file_bytes, ext)
         elif ext == '.txt':
             pdf_bytes = fallback_txt_to_pdf(file_bytes)
 
-        # ২. Native না থাকলে বা ব্যর্থ হলে MS Word COM
         if not pdf_bytes:
-            try:
-                pdf_bytes = convert_doc_via_word(file_bytes, ext)
-            except Exception as e:
-                print(f"Word COM error for {ext}: {e}")
+            pdf_bytes = convert_doc_via_word(file_bytes, ext)
 
-        # ৩. COM ব্যর্থ হলে চূড়ান্ত ফলব্যাক
         if not pdf_bytes and ext in ['.docx', '.doc', '.rtf', '.odt']:
             pdf_bytes = fallback_doc_to_pdf(file_bytes, ext)
 
@@ -557,18 +562,12 @@ def convert_any_file_to_jpg(file_bytes, filename, dpi=150, quality=85):
     if ext in ['.xls', '.xlsx', '.csv', '.xlsm', '.ods']:
         pdf_bytes = None
 
-        # ১. দ্রুত Native pandas/reportlab Conversion প্রথমে চেষ্টা (XLSX, CSV, ODS)
         if ext in ['.xlsx', '.csv', '.ods']:
             pdf_bytes = fallback_sheet_to_pdf(file_bytes, ext)
 
-        # ২. Native না থাকলে বা ব্যর্থ হলে MS Excel COM
         if not pdf_bytes:
-            try:
-                pdf_bytes = convert_sheet_via_excel(file_bytes, ext)
-            except Exception as e:
-                print(f"Excel COM error for {ext}: {e}")
+            pdf_bytes = convert_sheet_via_excel(file_bytes, ext)
 
-        # ৩. COM ব্যর্থ হলে ফলব্যাক
         if not pdf_bytes:
             pdf_bytes = fallback_sheet_to_pdf(file_bytes, ext)
 
@@ -588,18 +587,15 @@ def convert_any_file_to_pdf(file_bytes, filename):
     if not ext:
         ext = '.pdf'
 
-    # 1. PDF
     if ext == '.pdf':
         return file_bytes
 
-    # 2. SVG
     if ext == '.svg':
         doc = fitz.open(stream=file_bytes, filetype="svg")
         pdf_bytes = doc.convert_to_pdf()
         doc.close()
         return pdf_bytes
 
-    # 3. Image formats (.jpeg, .jpg, .png, .webp, .gif, .psd)
     if ext in ['.jpeg', '.jpg', '.png', '.webp', '.gif', '.psd']:
         try:
             return process_pillow_to_pdf(file_bytes)
@@ -609,7 +605,6 @@ def convert_any_file_to_pdf(file_bytes, filename):
             doc.close()
             return pdf_bytes
 
-    # 4. Vector Graphics (.ai, .eps)
     if ext in ['.ai', '.eps']:
         try:
             doc = fitz.open(stream=file_bytes)
@@ -622,12 +617,11 @@ def convert_any_file_to_pdf(file_bytes, filename):
             return process_pillow_to_pdf(file_bytes)
         except Exception:
             pass
-        try:
-            return convert_doc_via_word(file_bytes, ext)
-        except Exception as e:
-            raise RuntimeError(f"AI/EPS ফাইল থেকে পিডিএফ রূপান্তর সম্ভব হয়নি: {e}")
+        pdf_bytes = convert_doc_via_word(file_bytes, ext)
+        if pdf_bytes:
+            return pdf_bytes
+        raise RuntimeError(f"AI/EPS ফাইল থেকে পিডিএফ রূপান্তর সম্ভব হয়নি।")
 
-    # 5. Documents (.doc, .docx, .rtf, .odt, .txt)
     if ext in ['.doc', '.docx', '.rtf', '.odt', '.txt']:
         pdf_bytes = None
 
@@ -637,10 +631,7 @@ def convert_any_file_to_pdf(file_bytes, filename):
             pdf_bytes = fallback_txt_to_pdf(file_bytes)
 
         if not pdf_bytes:
-            try:
-                pdf_bytes = convert_doc_via_word(file_bytes, ext)
-            except Exception as e:
-                print(f"Word COM error for PDF conversion ({ext}): {e}")
+            pdf_bytes = convert_doc_via_word(file_bytes, ext)
 
         if not pdf_bytes and ext in ['.docx', '.doc', '.rtf', '.odt']:
             pdf_bytes = fallback_doc_to_pdf(file_bytes, ext)
@@ -650,7 +641,6 @@ def convert_any_file_to_pdf(file_bytes, filename):
         else:
             raise RuntimeError(f"{ext} ডকুমেন্টস ফাইল থেকে পিডিএফ তৈরি সম্ভব হয়নি।")
 
-    # 6. Spreadsheets (.xls, .xlsx, .csv, .xlsm, .ods)
     if ext in ['.xls', '.xlsx', '.csv', '.xlsm', '.ods']:
         pdf_bytes = None
 
@@ -658,10 +648,7 @@ def convert_any_file_to_pdf(file_bytes, filename):
             pdf_bytes = fallback_sheet_to_pdf(file_bytes, ext)
 
         if not pdf_bytes:
-            try:
-                pdf_bytes = convert_sheet_via_excel(file_bytes, ext)
-            except Exception as e:
-                print(f"Excel COM error for PDF conversion ({ext}): {e}")
+            pdf_bytes = convert_sheet_via_excel(file_bytes, ext)
 
         if not pdf_bytes:
             pdf_bytes = fallback_sheet_to_pdf(file_bytes, ext)
@@ -792,7 +779,6 @@ def download_pdf_zip():
         output = io.BytesIO()
 
         if pages:
-            # Drag & Drop পেজ অর্ডার অনুসারে নতুন জিপ ফাইল তৈরি
             with zipfile.ZipFile(output, 'w', zipfile.ZIP_STORED) as zip_file:
                 for idx, page in enumerate(pages):
                     data_url = page.get('data_url', '')
@@ -874,7 +860,6 @@ def convert_to_pdf_route():
             
         combined_pdf_bytes = doc_master.tobytes(clean=True, deflate=True)
         
-        # Parallel preview generation at 120 DPI
         def render_preview_page(i):
             page = doc_master.load_page(i)
             pix = page.get_pixmap(dpi=120, alpha=False)
@@ -933,7 +918,6 @@ def download_pdf_file():
         pages = data.get('pages', [])
 
         if pages:
-            # Drag & Drop পেজ অর্ডার অনুসারে নতুন পিডিএফ ফাইল তৈরি
             doc_master = fitz.open()
             for page in pages:
                 data_url = page.get('data_url', '')
@@ -972,4 +956,5 @@ def download_pdf_file():
         return jsonify({'error': f"পিডিএফ ডাউনলোড ত্রুটি: {str(e)}"}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)

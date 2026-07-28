@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>অল ফাইল টু পিডিএফ ও জেপিজি কনভার্টার টুলস</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Application Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-100 min-h-screen p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+        
+        <!-- Header Banner -->
+        <div class="bg-gradient-to-r from-indigo-700 via-purple-700 to-indigo-800 p-6 text-white text-center">
+            <h1 class="text-3xl font-extrabold tracking-tight mb-2">অনলাইন অল-ইন-ওয়ান ফাইল কনভার্টার</h1>
+            <p class="text-indigo-100 text-sm md:text-base">ওয়ার্ড টু এক্সেল, ১৯টি ফরম্যাট থেকে হাই-রেজুলোশন জেপিজি (JPG) এবং পিডিএফ (PDF) কনভার্টার</p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="flex flex-col sm:flex-row border-b border-gray-200 bg-slate-50">
+            <button id="tabWordToExcelBtn" onclick="switchTab('wordToExcel')" class="flex-1 py-4 px-4 text-center font-bold text-base transition flex items-center justify-center gap-2 border-b-4 border-indigo-600 text-indigo-700 bg-white shadow-sm">
+                <span>📊</span> ওয়ার্ড টু এক্সেল
+            </button>
+            <button id="tabPdfToJpgBtn" onclick="switchTab('pdfToJpg')" class="flex-1 py-4 px-4 text-center font-bold text-base transition flex items-center justify-center gap-2 border-b-4 border-transparent text-gray-500 hover:text-indigo-600 hover:bg-slate-100">
+                <span>🖼️</span> ফাইল টু জেপিজি (JPG HD)
+            </button>
+            <button id="tabFileToPdfBtn" onclick="switchTab('fileToPdf')" class="flex-1 py-4 px-4 text-center font-bold text-base transition flex items-center justify-center gap-2 border-b-4 border-transparent text-gray-500 hover:text-indigo-600 hover:bg-slate-100">
+                <span>📄</span> ফাইল টু পিডিএফ (PDF)
+            </button>
+        </div>
+
+        <div class="p-6 md:p-8">
+            
+            <!-- TAB 1: WORD TO EXCEL CONVERTER -->
+            <div id="wordToExcelTab" class="block">
+                <h2 class="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-2">
+                    <span>📊</span> ওয়ার্ড ফাইল থেকে এক্সেল তৈরি
+                </h2>
+                
+                <form id="uploadForm" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="border-2 border-dashed border-blue-300 p-6 rounded-xl text-center bg-blue-50/60 hover:bg-blue-50 transition">
+                        <label class="block font-semibold mb-2 text-blue-800 text-lg">১. ওয়ার্ড ফাইল (.docx) আপলোড করুন</label>
+                        <input type="file" id="wordFile" accept=".docx" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 cursor-pointer" required>
+                    </div>
+
+                    <div class="border-2 border-dashed border-emerald-300 p-6 rounded-xl text-center bg-emerald-50/60 hover:bg-emerald-50 transition">
+                        <label class="block font-semibold mb-2 text-emerald-800 text-lg">২. এক্সেল টেমপ্লেট (.xlsx) আপলোড করুন</label>
+                        <input type="file" id="excelTemplate" accept=".xlsx" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-100 file:text-emerald-700 hover:file:bg-emerald-200 cursor-pointer" required>
+                    </div>
+                    
+                    <div class="md:col-span-2 text-center mt-2">
+                        <button type="submit" id="processWordBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-bold text-base shadow-lg hover:shadow-xl transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2 mx-auto">
+                            <span>⚡</span> প্রসেস ও প্রিভিউ দেখুন
+                        </button>
+                    </div>
+                </form>
+
+                <div id="previewSection" class="hidden border-t border-gray-200 pt-6 mt-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                        <h3 class="text-xl font-bold text-gray-800">এক্সেল ফরম্যাট প্রিভিউ বক্স:</h3>
+                        <button id="downloadBtn" class="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-emerald-700 shadow-md transition flex items-center gap-2">
+                            📥 এক্সেল (.xlsx) ডাউনলোড করুন
+                        </button>
+                    </div>
+                    
+                    <div class="overflow-x-auto border border-gray-200 rounded-xl max-h-96 shadow-inner">
+                        <table class="min-w-full divide-y divide-gray-200 text-sm bg-white">
+                            <thead id="tableHead" class="bg-gray-100 sticky top-0 font-bold text-gray-700">
+                            </thead>
+                            <tbody id="tableBody" class="divide-y divide-gray-200 text-gray-600">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: MULTI-FORMAT TO JPG CONVERTER -->
+            <div id="pdfToJpgTab" class="hidden">
+                <h2 class="text-2xl font-bold mb-2 text-gray-800 flex items-center gap-2">
+                    <span>🖼️</span> ফাইল টু জেপিজি (JPG) হাই-রেজুলোশন কনভার্টার
+                </h2>
+                <p class="text-gray-600 text-sm mb-4">যেকোনো ডকুমেন্ট, ইমেজ, প্রেজেন্টেশন বা স্প্রেডশীট ফাইল আপলোড করে হাই-রেজুলোশনে জেপিজি (JPG) ছবিতে রূপান্তর করুন।</p>
+
+                <!-- Supported Formats Badge Grid -->
+                <div class="bg-indigo-50/70 border border-indigo-100 rounded-2xl p-4 mb-6">
+                    <h4 class="text-sm font-bold text-indigo-900 mb-3 flex items-center gap-1.5">
+                        <span>✨</span> সমর্থিত ১৯টি ফাইল ফরম্যাট:
+                    </h4>
+                    
+                    <div class="space-y-2">
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            <span class="text-xs font-bold text-indigo-800 bg-indigo-100 px-2 py-1 rounded-md">🖼️ ইমেজ ও ভেক্টর:</span>
+                            <span class="px-2 py-0.5 bg-white border border-indigo-200 text-indigo-700 text-xs font-semibold rounded-md shadow-2xs">.JPEG</span>
+                            <span class="px-2 py-0.5 bg-white border border-indigo-200 text-indigo-700 text-xs font-semibold rounded-md shadow-2xs">.PNG</span>
+                            <span class="px-2 py-0.5 bg-white border border-indigo-200 text-indigo-700 text-xs font-semibold rounded-md shadow-2xs">.WEBP</span>
+                            <span class="px-2 py-0.5 bg-white border border-indigo-200 text-indigo-700 text-xs font-semibold rounded-md shadow-2xs">.SVG</span>
+                            <span class="px-2 py-0.5 bg-white border border-indigo-200 text-indigo-700 text-xs font-semibold rounded-md shadow-2xs">.GIF</span>
+                            <span class="px-2 py-0.5 bg-white border border-indigo-200 text-indigo-700 text-xs font-semibold rounded-md shadow-2xs">.PSD</span>
+                            <span class="px-2 py-0.5 bg-white border border-indigo-200 text-indigo-700 text-xs font-semibold rounded-md shadow-2xs">.AI</span>
+                            <span class="px-2 py-0.5 bg-white border border-indigo-200 text-indigo-700 text-xs font-semibold rounded-md shadow-2xs">.EPS</span>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            <span class="text-xs font-bold text-blue-800 bg-blue-100 px-2 py-1 rounded-md">📄 ডকুমেন্টস:</span>
+                            <span class="px-2 py-0.5 bg-white border border-blue-200 text-blue-700 text-xs font-semibold rounded-md shadow-2xs">.PDF</span>
+                            <span class="px-2 py-0.5 bg-white border border-blue-200 text-blue-700 text-xs font-semibold rounded-md shadow-2xs">.DOC</span>
+                            <span class="px-2 py-0.5 bg-white border border-blue-200 text-blue-700 text-xs font-semibold rounded-md shadow-2xs">.DOCX</span>
+                            <span class="px-2 py-0.5 bg-white border border-blue-200 text-blue-700 text-xs font-semibold rounded-md shadow-2xs">.TXT</span>
+                            <span class="px-2 py-0.5 bg-white border border-blue-200 text-blue-700 text-xs font-semibold rounded-md shadow-2xs">.RTF</span>
+                            <span class="px-2 py-0.5 bg-white border border-blue-200 text-blue-700 text-xs font-semibold rounded-md shadow-2xs">.ODT</span>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            <span class="text-xs font-bold text-emerald-800 bg-emerald-100 px-2 py-1 rounded-md">📊 স্প্রেডশীট:</span>
+                            <span class="px-2 py-0.5 bg-white border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-md shadow-2xs">.XLS</span>
+                            <span class="px-2 py-0.5 bg-white border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-md shadow-2xs">.XLSX</span>
+                            <span class="px-2 py-0.5 bg-white border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-md shadow-2xs">.CSV</span>
+                            <span class="px-2 py-0.5 bg-white border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-md shadow-2xs">.XLSM</span>
+                            <span class="px-2 py-0.5 bg-white border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-md shadow-2xs">.ODS</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <form id="pdfUploadForm" class="bg-slate-50 border border-slate-200 p-6 rounded-2xl mb-8 shadow-sm">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+                        
+                        <div class="md:col-span-2">
+                            <label class="block font-bold text-gray-700 mb-2">ফাইল নির্বাচন করুন (PDF, DOC, DOCX, PNG, SVG, XLSX ইত্যাদি):</label>
+                            <input type="file" id="pdfFileInput" accept=".pdf,.jpeg,.jpg,.png,.webp,.svg,.gif,.psd,.ai,.eps,.doc,.docx,.txt,.rtf,.odt,.xls,.xlsx,.csv,.xlsm,.ods" class="block w-full text-sm text-gray-600 file:mr-4 file:py-3 file:px-5 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-indigo-100 file:text-indigo-700 hover:file:bg-indigo-200 cursor-pointer border border-gray-300 rounded-xl p-1 bg-white" required multiple>
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-gray-700 mb-2">রেজুলোশন (কোয়ালিটি):</label>
+                            <select id="dpiSelect" class="w-full bg-white border border-gray-300 rounded-xl py-3 px-4 text-gray-700 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="150" selected>⚡ 150 DPI - Standard (দ্রুততম প্রসেসিং - ডিফল্ট)</option>
+                                <option value="300">⭐ 300 DPI - HD (হাই রেজুলোশন)</option>
+                                <option value="600">💎 600 DPI - Ultra HD (সর্বোচ্চ স্পষ্ট)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-6">
+                        <button type="submit" id="convertPdfBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-bold text-base shadow-lg hover:shadow-xl transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2 mx-auto">
+                            <span>🚀</span> জেপিজি (JPG) ছবিতে রূপান্তর করুন
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Loading State -->
+                <div id="pdfLoading" class="hidden text-center py-12">
+                    <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent mb-4"></div>
+                    <h4 class="text-lg font-bold text-gray-800">ফাইল প্রসেস ও ছবিতে রূপান্তর করা হচ্ছে...</h4>
+                    <p class="text-gray-500 text-sm">উচ্চ রেজুলোশন প্রসেসিংয়ের কারণে কয়েক সেকেন্ড সময় লাগতে পারে</p>
+                </div>
+
+                <!-- Conversion Results Section -->
+                <div id="pdfResultSection" class="hidden">
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-emerald-900 flex items-center gap-2">
+                                <span>ক্লিন ও নিখুঁত রূপান্তর সম্পন্ন!</span>
+                            </h3>
+                            <p id="pdfSummaryText" class="text-emerald-700 text-sm mt-1"></p>
+                        </div>
+                        <div class="flex flex-wrap gap-3">
+                            <button id="downloadAllZipBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-bold shadow-md transition flex items-center gap-2">
+                                📦 সব ছবি এক ক্লিকে ডাউনলোড (ZIP)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mb-4 flex items-center justify-between bg-indigo-50/80 border border-indigo-200 text-indigo-900 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-2xs">
+                        <span class="flex items-center gap-2">
+                            <span class="text-base">✋</span> মাউস দিয়ে ড্রাগ ও ড্রপ (Drag & Drop) করে যেকোনো পেজের ক্রম/সিরিয়াল নম্বর পরিবর্তন করতে পারবেন
+                        </span>
+                        <span class="text-xs bg-indigo-100 px-2 py-0.5 rounded-full text-indigo-700 font-mono">Drag to Reorder</span>
+                    </div>
+
+                    <!-- Images Grid -->
+                    <div id="imagesGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: MULTI-FORMAT TO PDF CONVERTER -->
+            <div id="fileToPdfTab" class="hidden">
+                <h2 class="text-2xl font-bold mb-2 text-gray-800 flex items-center gap-2">
+                    <span>📄</span> ফাইল টু পিডিএফ (PDF) কনভার্টার
+                </h2>
+                <p class="text-gray-600 text-sm mb-4">যেকোনো ইমেজ, ভেক্টর, ফাইল, ওয়ার্ড বা স্প্রেডশীট ফাইল নির্বাচন করে একটি প্রফেশনাল পিডিএফ (.PDF) ডক তৈরি করুন।</p>
+
+                <!-- Supported Formats Badge Grid -->
+                <div class="bg-purple-50/70 border border-purple-100 rounded-2xl p-4 mb-6">
+                    <h4 class="text-sm font-bold text-purple-900 mb-3 flex items-center gap-1.5">
+                        <span>✨</span> সমর্থিত ১৯টি ফাইল ফরম্যাট:
+                    </h4>
+                    
+                    <div class="space-y-2">
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            <span class="text-xs font-bold text-indigo-800 bg-indigo-100 px-2 py-1 rounded-md">🖼️ ইমেজ ও ভেক্টর:</span>
+                            <span class="px-2 py-0.5 bg-white border border-indigo-200 text-indigo-700 text-xs font-semibold rounded-md shadow-2xs">.JPEG</span>
+                            <span class="px-2 py-0.5 bg-white border border-indigo-200 text-indigo-700 text-xs font-semibold rounded-md shadow-2xs">.PNG</span>
+                            <span class="px-2 py-0.5 bg-white border border-indigo-200 text-indigo-700 text-xs font-semibold rounded-md shadow-2xs">.WEBP</span>
+                            <span class="px-2 py-0.5 bg-white border border-indigo-200 text-indigo-700 text-xs font-semibold rounded-md shadow-2xs">.SVG</span>
+                            <span class="px-2 py-0.5 bg-white border border-indigo-200 text-indigo-700 text-xs font-semibold rounded-md shadow-2xs">.GIF</span>
+                            <span class="px-2 py-0.5 bg-white border border-indigo-200 text-indigo-700 text-xs font-semibold rounded-md shadow-2xs">.PSD</span>
+                            <span class="px-2 py-0.5 bg-white border border-indigo-200 text-indigo-700 text-xs font-semibold rounded-md shadow-2xs">.AI</span>
+                            <span class="px-2 py-0.5 bg-white border border-indigo-200 text-indigo-700 text-xs font-semibold rounded-md shadow-2xs">.EPS</span>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            <span class="text-xs font-bold text-blue-800 bg-blue-100 px-2 py-1 rounded-md">📄 ডকুমেন্টস:</span>
+                            <span class="px-2 py-0.5 bg-white border border-blue-200 text-blue-700 text-xs font-semibold rounded-md shadow-2xs">.PDF</span>
+                            <span class="px-2 py-0.5 bg-white border border-blue-200 text-blue-700 text-xs font-semibold rounded-md shadow-2xs">.DOC</span>
+                            <span class="px-2 py-0.5 bg-white border border-blue-200 text-blue-700 text-xs font-semibold rounded-md shadow-2xs">.DOCX</span>
+                            <span class="px-2 py-0.5 bg-white border border-blue-200 text-blue-700 text-xs font-semibold rounded-md shadow-2xs">.TXT</span>
+                            <span class="px-2 py-0.5 bg-white border border-blue-200 text-blue-700 text-xs font-semibold rounded-md shadow-2xs">.RTF</span>
+                            <span class="px-2 py-0.5 bg-white border border-blue-200 text-blue-700 text-xs font-semibold rounded-md shadow-2xs">.ODT</span>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            <span class="text-xs font-bold text-emerald-800 bg-emerald-100 px-2 py-1 rounded-md">📊 স্প্রেডশীট:</span>
+                            <span class="px-2 py-0.5 bg-white border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-md shadow-2xs">.XLS</span>
+                            <span class="px-2 py-0.5 bg-white border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-md shadow-2xs">.XLSX</span>
+                            <span class="px-2 py-0.5 bg-white border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-md shadow-2xs">.CSV</span>
+                            <span class="px-2 py-0.5 bg-white border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-md shadow-2xs">.XLSM</span>
+                            <span class="px-2 py-0.5 bg-white border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-md shadow-2xs">.ODS</span>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="toPdfForm" class="bg-slate-50 border border-slate-200 p-6 rounded-2xl mb-8 shadow-sm">
+                    <div class="mb-6">
+                        <label class="block font-bold text-gray-700 mb-2">ফাইল নির্বাচন করুন (JPEG, PNG, DOCX, XLSX, SVG, PSD ইত্যাদি):</label>
+                        <input type="file" id="toPdfFileInput" accept=".pdf,.jpeg,.jpg,.png,.webp,.svg,.gif,.psd,.ai,.eps,.doc,.docx,.txt,.rtf,.odt,.xls,.xlsx,.csv,.xlsm,.ods" class="block w-full text-sm text-gray-600 file:mr-4 file:py-3 file:px-5 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-purple-100 file:text-purple-700 hover:file:bg-purple-200 cursor-pointer border border-gray-300 rounded-xl p-1 bg-white" required multiple>
+                    </div>
+
+                    <div class="text-center mt-6">
+                        <button type="submit" id="convertToPdfBtn" class="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-xl font-bold text-base shadow-lg hover:shadow-xl transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2 mx-auto">
+                            <span>🚀</span> পিডিএফ (PDF) ফাইলে রূপান্তর করুন
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Loading State -->
+                <div id="toPdfLoading" class="hidden text-center py-12">
+                    <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-purple-600 border-t-transparent mb-4"></div>
+                    <h4 class="text-lg font-bold text-gray-800">পিডিএফ (.pdf) ফাইল তৈরি করা হচ্ছে...</h4>
+                    <p class="text-gray-500 text-sm">কনভার্সন প্রসেসিং সম্পন্ন হতে কয়েক সেকেন্ড সময় লাগতে পারে</p>
+                </div>
+
+                <!-- PDF Result Section -->
+                <div id="toPdfResultSection" class="hidden">
+                    <div class="bg-purple-50 border border-purple-200 rounded-2xl p-5 mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-purple-900 flex items-center gap-2">
+                                <span>ক্লিন ও নিখুঁত পিডিএফ রূপান্তর সম্পন্ন!</span>
+                            </h3>
+                            <p id="toPdfSummaryText" class="text-purple-700 text-sm mt-1"></p>
+                        </div>
+                        <div>
+                            <button id="downloadPdfFileBtn" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2.5 rounded-xl font-bold shadow-md transition flex items-center gap-2">
+                                📥 পিডিএফ (.pdf) ডাউনলোড করুন
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mb-4 flex items-center justify-between bg-purple-50/80 border border-purple-200 text-purple-900 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-2xs">
+                        <span class="flex items-center gap-2">
+                            <span class="text-base">✋</span> মাউস দিয়ে ড্রাগ ও ড্রপ (Drag & Drop) করে যেকোনো পেজের ক্রম/সিরিয়াল নম্বর পরিবর্তন করতে পারবেন
+                        </span>
+                        <span class="text-xs bg-purple-100 px-2 py-0.5 rounded-full text-purple-700 font-mono">Drag to Reorder</span>
+                    </div>
+
+                    <h4 class="text-lg font-bold text-gray-800 mb-4">তৈরিকৃত পিডিএফ পেজ প্রিভিউ:</h4>
+                    <!-- PDF Pages Grid Preview -->
+                    <div id="pdfPagesGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Image Lightbox Modal -->
+    <div id="imageModal" class="fixed inset-0 bg-black/80 hidden z-50 flex items-center justify-center p-4">
+        <div class="relative max-w-4xl w-full max-h-[90vh] flex flex-col items-center">
+            <button onclick="closeModal()" class="absolute -top-10 right-0 text-white text-2xl font-bold hover:text-gray-300">✕ বন্ধ করুন</button>
+            <img id="modalImage" src="" alt="Full view" class="max-h-[80vh] w-auto object-contain rounded-lg shadow-2xl">
+            <p id="modalCaption" class="text-white text-center mt-3 font-semibold"></p>
+        </div>
+    </div>
+
+    <!-- Application JavaScript Logic -->
+    <script src="app.js"></script>
+</body>
+</html>
